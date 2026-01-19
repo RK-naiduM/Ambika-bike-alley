@@ -22,8 +22,8 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:5173',                  // Vite Local
   'http://localhost:3000',                  // Alternative Local
-  'https://your-vercel-app.vercel.app',     // <--- REPLACE THIS LATER with your actual Vercel URL
-  'https://bike-shop-frontend.vercel.app'   // Example placeholder
+  'https://ambika-bike-alley.vercel.app',     // <--- REPLACE THIS LATER with your actual Vercel URL
+
 ];
 
 app.use(cors({
