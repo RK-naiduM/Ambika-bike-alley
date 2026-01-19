@@ -5,7 +5,6 @@ const { protect, admin } = require('../middleware/authMiddleware');
 const jwt = require('jsonwebtoken');
 
 // --- HELPER FUNCTION ---
-// We define this here to ensure it is always available
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: '30d',
@@ -24,12 +23,22 @@ router.post('/login', async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
+    
+    const token = generateToken(user._id);
+
+    // --- COOKIE SETTINGS FOR PROD & DEV ---
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== 'development', // Use HTTPS in Prod
+      sameSite: process.env.NODE_ENV !== 'development' ? 'None' : 'Strict', // Cross-site in Prod
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
     res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
-      token: generateToken(user._id),
     });
   } else {
     res.status(401);
@@ -52,12 +61,21 @@ router.post('/', async (req, res) => {
   const user = await User.create({ name, email, password });
 
   if (user) {
+    const token = generateToken(user._id);
+
+    // --- COOKIE SETTINGS FOR PROD & DEV ---
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== 'development',
+      sameSite: process.env.NODE_ENV !== 'development' ? 'None' : 'Strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
-      token: generateToken(user._id),
     });
   } else {
     res.status(400);
@@ -73,7 +91,6 @@ router.post('/', async (req, res) => {
 // @route   GET /api/users/profile
 // @access  Private
 router.get('/profile', protect, async (req, res) => {
-  // We fetch fresh data from DB to be safe
   const user = await User.findById(req.user._id);
 
   if (user) {
@@ -103,13 +120,22 @@ router.put('/profile', protect, async (req, res) => {
     }
 
     const updatedUser = await user.save();
+    
+    const token = generateToken(updatedUser._id);
+
+    // --- COOKIE SETTINGS FOR PROD & DEV ---
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== 'development',
+      sameSite: process.env.NODE_ENV !== 'development' ? 'None' : 'Strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
 
     res.json({
       _id: updatedUser._id,
       name: updatedUser.name,
       email: updatedUser.email,
       isAdmin: updatedUser.isAdmin,
-      token: generateToken(updatedUser._id),
     });
   } else {
     res.status(404);
@@ -136,7 +162,6 @@ router.delete('/:id', protect, admin, async (req, res) => {
   const user = await User.findById(req.params.id);
 
   if (user) {
-    // Safety Check: Prevent deleting Admin users
     if (user.isAdmin) {
       res.status(400);
       throw new Error('Cannot delete admin user');
@@ -171,7 +196,6 @@ router.put('/:id', protect, admin, async (req, res) => {
   if (user) {
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
-    // Note: We check specifically for boolean value
     user.isAdmin = Boolean(req.body.isAdmin);
 
     const updatedUser = await user.save();
@@ -188,12 +212,10 @@ router.put('/:id', protect, admin, async (req, res) => {
   }
 });
 
-
 // @desc    Logout user / clear cookie
 // @route   POST /api/users/logout
 // @access  Private
 router.post('/logout', (req, res) => {
-  // Clear the cookie named 'jwt'
   res.cookie('jwt', '', {
     httpOnly: true,
     expires: new Date(0),
