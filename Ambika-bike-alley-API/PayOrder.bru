@@ -1,0 +1,15 @@
+meta {
+  name: PayOrder
+  type: http
+  seq: 6
+}
+
+put {
+  url: http://localhost:5000/api/orders/696e1b9632f2052caf0f31af/pay
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

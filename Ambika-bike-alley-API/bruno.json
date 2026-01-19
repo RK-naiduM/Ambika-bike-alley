@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Ambika-bike-alley",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
