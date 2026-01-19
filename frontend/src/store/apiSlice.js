@@ -5,17 +5,17 @@ const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
   credentials: 'include',
 
-  prepareHeaders: (headers, { getState }) => {
-    // 1. Get the 'auth' state from the Redux store
-    const token = getState().auth.userInfo?.token;
+//   prepareHeaders: (headers, { getState }) => {
+//     // 1. Get the 'auth' state from the Redux store
+//     const token = getState().auth.userInfo?.token;
 
-    // 2. If we have a token, attach it to the header
-    if (token) {
-      headers.set('authorization', `Bearer ${token}`);
-    }
+//     // 2. If we have a token, attach it to the header
+//     if (token) {
+//       headers.set('authorization', `Bearer ${token}`);
+//     }
 
-    return headers;
-  },
+//     return headers;
+//   },
 });
 
 export const apiSlice = createApi({

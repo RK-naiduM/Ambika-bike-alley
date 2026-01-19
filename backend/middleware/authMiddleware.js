@@ -1,38 +1,31 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+// Protect Middleware
 const protect = async (req, res, next) => {
   let token;
 
-  // 1. Check if the "Authorization" header exists and starts with "Bearer"
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    try {
-      // 2. Get the token from the header (remove the word "Bearer ")
-      token = req.headers.authorization.split(' ')[1];
+  // --- CHANGED: Read from the cookie named 'jwt' ---
+  token = req.cookies.jwt;
 
-      // 3. Decode the token to find the User ID
+  if (token) {
+    try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // 4. Find the user in the DB and attach it to the request
-      // (We exclude the password for security)
+      // Get user from the token
       req.user = await User.findById(decoded.id).select('-password');
 
-      next(); // Pass the user to the next step
+      next();
     } catch (error) {
       console.error(error);
       res.status(401).json({ message: 'Not authorized, token failed' });
     }
-  }
-
-  if (!token) {
+  } else {
     res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
 
-// Admin Middleware: Checks if user.isAdmin is true
+// Admin Middleware
 const admin = (req, res, next) => {
   if (req.user && req.user.isAdmin) {
     next();
@@ -42,6 +35,4 @@ const admin = (req, res, next) => {
   }
 };
 
-// Update the exports at the bottom
 module.exports = { protect, admin };
-

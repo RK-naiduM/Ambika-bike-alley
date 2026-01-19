@@ -30,7 +30,7 @@ router.post('/login', async (req, res) => {
     res.cookie('jwt', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV !== 'development', // Use HTTPS in Prod
-      sameSite: process.env.NODE_ENV !== 'development' ? 'None' : 'Strict', // Cross-site in Prod
+      sameSite: process.env.NODE_ENV !== 'development' ? 'None' : 'Lax', // Cross-site in Prod
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
